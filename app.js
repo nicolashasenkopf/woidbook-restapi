@@ -1,5 +1,4 @@
 var createError = require('http-errors');
-var path = require('path');
 var cookieParser = require('cookie-parser');
 var logger = require('morgan');
 var bodyparser = require('body-parser');
@@ -11,11 +10,14 @@ var serviceAccount = require('./firebase_admin/woidbook-b76ba-firebase-adminsdk-
 
 admin.initializeApp({
   credential: admin.credential.cert(serviceAccount)
-})
+});
+
+// connect to database
+mongoose.connect("mongodb+srv://" + secrets.dbUser + ":" + secrets.dbPassword + "@woidbook-iwwlt.mongodb.net/" + secrets.dbName + "?retryWrites=true&w=majority");
 
 // router
 var indexRouter = require('./routes/index');
-var usersRouter = require('./routes/users');
+var usersRouter = require('./routes/user');
 
 var express = require('express');
 var app = express();
@@ -27,10 +29,9 @@ app.use(logger('dev'));
 app.use(bodyparser.json());
 app.use(bodyparser.urlencoded({ extended: false }));
 app.use(cookieParser());
-//app.use(express.static(path.join(__dirname, 'public')));
 
 app.use('/', indexRouter);
-app.use('/users', usersRouter);
+app.use('/user', usersRouter);
 
 // catch 404 and forward to error handler
 app.use(function(req, res, next) {
@@ -49,11 +50,6 @@ app.use(function(err, req, res, next) {
 });
 
 // start http server on port 8000
-httpServer.listen(8000, () => onStartup());
-
-
-function onStartup() {
-  admin.auth().getUserByEmail("nicolas@nicolas.com").then((users) => console.log(users));
-}
+httpServer.listen(8000, () => console.log("Started userservice on port 8000"));
 
 module.exports = app;
