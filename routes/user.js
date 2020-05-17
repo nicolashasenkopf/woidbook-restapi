@@ -260,6 +260,128 @@ router.post('/:uid/follow', verify, (req, res, next) => {
   });
 });
 
+/* POST update information option */
+router.post('/options/information/update', verify, (req, res, next) => {
+  if(req.body.birthday && req.body.description && req.body.region && req.body.town) {
+    User.findById(req.decodedToken.uid, (error, user) => {
+      if(error) res.status(500).json({
+        status: 500,
+        error: error,
+        timestamp: Date.now()
+      });
+
+      if(user) {
+        const information = {
+          birthday: req.body.birthday,
+          description: req.body.description,
+          region: req.body.region,
+          town: req.body.town
+        }
+
+        user.options.information = information;
+
+        user.update({'options': user.options});
+
+        res.status(200).json({
+          status: 200,
+          message: "Successfully changed options (information)"
+        });
+      } else {
+        res.status(404).json({
+          status: 404,
+          error: {
+            code: "NO_USER_FOUND",
+            message: "No user could be found with the following uid: " + req.decodedToken.uid
+          },
+          timestamp: Date.now()
+        });
+      }
+    })
+  }
+});
+
+/* POST update notifications option */
+router.post('/options/notifications/update', verify, (req, res, next) => {
+  if(req.body.comments && req.body.level && req.body.likes && req.body.mentions && req.body.requests) {
+    User.findById(req.decodedToken.uid, (error, user) => {
+      if(error) res.status(500).json({
+        status: 500,
+        error: error,
+        timestamp: Date.now()
+      });
+
+      if(user) {
+        const notifications = {
+          comments: req.body.comments,
+          level: req.body.level,
+          likes: req.body.likes,
+          mentions: req.body.mentions,
+          requests: req.body.requests
+        }
+
+        user.options.notifications = notifications;
+
+        user.update({'options': user.options});
+
+        res.status(200).json({
+          status: 200,
+          message: "Successfully changed options (notifications)"
+        });
+      } else {
+        res.status(404).json({
+          status: 404,
+          error: {
+            code: "NO_USER_FOUND",
+            message: "No user could be found with the following uid: " + req.decodedToken.uid
+          },
+          timestamp: Date.now()
+        });
+      }
+    })
+  }
+});
+
+/* POST update privacy option */
+router.post('/options/privacy/update', verify, (req, res, next) => {
+  if(req.body.comments && req.body.birthday && req.body.likes && req.body.town && req.body.privat) {
+    User.findById(req.decodedToken.uid, (error, user) => {
+      if(error) res.status(500).json({
+        status: 500,
+        error: error,
+        timestamp: Date.now()
+      });
+
+      if(user) {
+        const privacy = {
+          comments: req.body.comments,
+          birthday: req.body.birthday,
+          likes: req.body.likes,
+          town: req.body.town,
+          privat: req.body.privat
+        }
+
+        user.options.privacy = privacy;
+
+        user.update({'options': user.options});
+
+        res.status(200).json({
+          status: 200,
+          message: "Successfully changed options (privacy)"
+        });
+      } else {
+        res.status(404).json({
+          status: 404,
+          error: {
+            code: "NO_USER_FOUND",
+            message: "No user could be found with the following uid: " + req.decodedToken.uid
+          },
+          timestamp: Date.now()
+        });
+      }
+    })
+  }
+});
+
 // authentication
 function verify(req, res, next) {
   if(req.body.id_token != null) {
