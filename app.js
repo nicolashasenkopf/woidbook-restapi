@@ -4,14 +4,6 @@ var logger = require('morgan');
 var bodyparser = require('body-parser');
 var http = require('http');
 
-// firebase admin
-var admin = require('firebase-admin');
-var serviceAccount = require('./firebase_admin/woidbook-b76ba-firebase-adminsdk-a2do8-83f6884202.json');
-
-admin.initializeApp({
-  credential: admin.credential.cert(serviceAccount)
-});
-
 // connect to database
 mongoose.connect("mongodb+srv://" + secrets.dbUser + ":" + secrets.dbPassword + "@woidbook-iwwlt.mongodb.net/" + secrets.dbName + "?retryWrites=true&w=majority");
 
