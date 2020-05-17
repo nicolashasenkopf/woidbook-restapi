@@ -8,8 +8,11 @@ This is the userservice from the WoidBook backend services
 - It also make sure that the database is always accessable
 
 ## Documentation
-``` javascript
-/user/data #gets you the data from the verified user
-/user/UID/profile #gets you the profile data from the user in the URL 
-
+``` 
+/user/data || gets you the data from the verified user
+/user/UID/profile || gets you the profile data from the user in the URL 
+/user/UID/follow || follow or unfollow a user
+/user/options/information/update || update your information
+/user/options/notifications/update || update your notifications
+/user/options/privacy/update || update your privacy
 ```
