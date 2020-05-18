@@ -8,11 +8,43 @@ This is the userservice from the WoidBook backend services
 - It also make sure that the database is always accessable
 
 ## Documentation
-``` 
-/user/data || gets you the data from the verified user
-/user/UID/profile || gets you the profile data from the user in the URL 
-/user/UID/follow || follow or unfollow a user
-/user/options/information/update || update your information
-/user/options/notifications/update || update your notifications
-/user/options/privacy/update || update your privacy
 ```
+/user/data
+```
+- Get data from verified user from the database
+- Need to be authenticated
+
+```
+/user/UID/profile
+```
+- Get profile data
+- Need to be authenticated
+- UID (Params) is the UID of the profile
+
+```
+/user/UID/follow
+```
+- Add user to follower list
+- Need to be authenticated
+- UID (Params) is the UID of the profile
+
+```
+/user/options/information/update
+```
+- Add user to follower list
+- Need to be authenticated
+- Informations (Body)
+
+```
+/user/options/notifications/update
+```
+- Add user to follower list
+- Need to be authenticated
+- Notifications (Body)
+
+```
+/user/options/privacy/update
+```
+- Add user to follower list
+- Need to be authenticated
+- Privacy (Body)
