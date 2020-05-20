@@ -22,11 +22,11 @@ This is the userservice from the WoidBook backend services
 - UID (Params) is the UID of the profile
 
 ```
-/user/UID/follow
+/user/follow
 ```
 - Add user to follower list
 - Need to be authenticated
-- UID (Params) is the UID of the profile
+- UID (Body) is the UID of the profile
 
 ```
 /user/options/information/update

@@ -4,12 +4,16 @@ var logger = require('morgan');
 var bodyparser = require('body-parser');
 var http = require('http');
 
+// firebase
+require('./firebase/firebase').load();
+
 // connect to database
 mongoose.connect("mongodb+srv://" + secrets.dbUser + ":" + secrets.dbPassword + "@woidbook-iwwlt.mongodb.net/" + secrets.dbName + "?retryWrites=true&w=majority");
 
 // router
 var indexRouter = require('./routes/index');
-var usersRouter = require('./routes/user');
+var userRouter = require('./routes/user');
+var postRouter = require('./routes/post');
 
 var express = require('express');
 var app = express();
@@ -23,7 +27,8 @@ app.use(bodyparser.urlencoded({ extended: false }));
 app.use(cookieParser());
 
 app.use('/', indexRouter);
-app.use('/user', usersRouter);
+app.use('/user', userRouter);
+app.use('/post', postRouter);
 
 // catch 404 and forward to error handler
 app.use(function(req, res, next) {

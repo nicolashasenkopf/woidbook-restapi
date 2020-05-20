@@ -1,19 +1,12 @@
 var express = require('express');
 var router = express.Router();
+var firebase = require('../firebase/firebase');
 
 // models
 var User = require('../models/user');
 
-// firebase admin
-var admin = require('firebase-admin');
-var serviceAccount = require('./firebase_admin/woidbook-b76ba-firebase-adminsdk-a2do8-83f6884202.json');
-
-admin.initializeApp({
-  credential: admin.credential.cert(serviceAccount)
-});
-
 /* GET userdata */
-router.get('/data', verify, function(req, res, next) {
+router.get('/data', firebase.verify, function(req, res, next) {
   User.findById(req.decodedToken.uid, (error, user) => {
     if(error) res.status(500).json({
       status: 500,
@@ -41,7 +34,7 @@ router.get('/data', verify, function(req, res, next) {
 });
 
 /* GET profiledata */
-router.get('/:uid/profile', verify, (req, res, next) => {
+router.get('/:uid/profile', firebase.verify, (req, res, next) => {
   var uid = req.params.uid;
 
   User.findById(uid, (error, user) => {
@@ -133,8 +126,8 @@ router.get('/:uid/profile', verify, (req, res, next) => {
 });
 
 /* POST un/follow */
-router.post('/:uid/follow', verify, (req, res, next) => {
-  var uid = req.params.uid;
+router.post('/follow', firebase.verify, (req, res, next) => {
+  var uid = req.body.uid;
 
   User.findById(uid, (error, user) => {
     if(error) res.status(500).json({
@@ -261,7 +254,7 @@ router.post('/:uid/follow', verify, (req, res, next) => {
 });
 
 /* POST update information option */
-router.post('/options/information/update', verify, (req, res, next) => {
+router.post('/options/information/update', firebase.verify, (req, res, next) => {
   if(req.body.birthday && req.body.description && req.body.region && req.body.town) {
     User.findById(req.decodedToken.uid, (error, user) => {
       if(error) res.status(500).json({
@@ -301,7 +294,7 @@ router.post('/options/information/update', verify, (req, res, next) => {
 });
 
 /* POST update notifications option */
-router.post('/options/notifications/update', verify, (req, res, next) => {
+router.post('/options/notifications/update', firebase.verify, (req, res, next) => {
   if(req.body.comments && req.body.level && req.body.likes && req.body.mentions && req.body.requests) {
     User.findById(req.decodedToken.uid, (error, user) => {
       if(error) res.status(500).json({
@@ -342,7 +335,7 @@ router.post('/options/notifications/update', verify, (req, res, next) => {
 });
 
 /* POST update privacy option */
-router.post('/options/privacy/update', verify, (req, res, next) => {
+router.post('/options/privacy/update', firebase.verify, (req, res, next) => {
   if(req.body.comments && req.body.birthday && req.body.likes && req.body.town && req.body.privat) {
     User.findById(req.decodedToken.uid, (error, user) => {
       if(error) res.status(500).json({
@@ -381,22 +374,5 @@ router.post('/options/privacy/update', verify, (req, res, next) => {
     })
   }
 });
-
-// authentication
-function verify(req, res, next) {
-  if(req.body.id_token != null) {
-    auth.verifyIdToken(req.body.id_token)
-      .then((decodedToken) => {
-        if(decodedToken.uid != null) {
-          req.decodedToken = decodedToken;
-          next();
-        }
-      }).catch((error) => res.status(401).json({
-        status: 401,
-        error: error,
-        timestamp: Date.now()
-      }));
-  }
-}
 
 module.exports = router;
