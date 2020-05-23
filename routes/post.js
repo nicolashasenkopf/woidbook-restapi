@@ -113,6 +113,16 @@ router.post('/add', firebase.verify, upload.fields([{name: 'images', maxCount: 4
             });
 
             if(user) {
+                var mentions = [];
+                var splitContent = req.body.content.split(" ");
+                for(let i = 0; i < splitContent.length; i++) {
+                    if(splitContent[i].startsWith("@")) {
+                        if(splitContent[i].length > 5) {
+                            mentions.push(splitContent[i].replace("@", ""));
+                        }
+                    }
+                }
+
                 var post = new Post();
                 post._id = create_UUID();
                 post.user = {
@@ -124,6 +134,32 @@ router.post('/add', firebase.verify, upload.fields([{name: 'images', maxCount: 4
                 post.content = req.body.content;
                 post.images = images;
                 post.videos = videos;
+                post.mentions = mentions;
+
+                if(mentions.length > 0) {
+                    User.find({'username': { $in: mentions }}, (error, users) => {
+                        if(error) res.status(500).json({
+                            status: 500,
+                            error: error,
+                            timestamp: Date.now()
+                        });
+    
+                        if(users) {
+                            for(let i = 0; i < users.length; i++) {
+                                users[i].notifications.push({
+                                    _id: create_UUID(),
+                                    message: "@" + user.username + " hat einen deiner Beiträge kommentiert!",
+                                    post_id: post._id,
+                                    seen = false,
+                                    action = false,
+                                    createdAt: Date.now()
+                                });
+
+                                users[i].update({'notifications': users[i].notifications});
+                            }
+                        }
+                    });
+                }
 
                 post.save((err) => {
                     if(err) {
@@ -233,12 +269,21 @@ router.post('/like', firebase.verify, (req, res, next) => {
                 });
             }
         });
-    }  
+    } else {
+        res.status(400).json({
+            status: 400,
+            error: {
+                code: "INVALID_BODY",
+                message: "No content could be found in the body! Required: UID"
+            },
+            timestamp: Date.now()
+        });
+    } 
 });
 
 /* POST comment post */
-router.post('/comment', firebase.verify, (req, res, next) => {
-    if(req.body.uid && req.body.comment) {
+router.post('/comment/add', firebase.verify, (req, res, next) => {
+    if(req.body.uid && req.body.comment && req.body.username) {
         var post_id = req.body.uid;
         
         Post.findById(post_id, (error, post) => {
@@ -248,7 +293,144 @@ router.post('/comment', firebase.verify, (req, res, next) => {
                 timestamp: Date.now()
             });
 
-            
+            if(post) {
+                var comments = post.comments;
+                if(req.body.comment.toString().length < 251) {
+                    var mentions = [];
+                    
+                    var splitComment = req.body.comment.split(" ");
+                    for(let i = 0; i < splitComment; i++) {
+                        if(splitComment[i].startsWith("@")) {
+                            if(splitComment[i].length > 5) {
+                                mentions.push(splitComment[i].replace("@", ""));
+                            }
+                        }
+                    }
+
+                    comments.push({
+                        _id: create_UUID(),
+                        uid: req.decodedToken.uid,
+                        username: req.body.username,
+                        comment: req.body.comment,
+                        mentions: mentions,
+                        createdAt: Date.now()
+                    });
+
+                    post.update({'comments': comments}, (error) => {
+                        if(error) {
+                            res.status(500).json({
+                                status: 500,
+                                error: error,
+                                timestamp: Date.now()
+                            });
+                        } else {
+                            res.status(200).json({
+                                status: 200,
+                                message: "Successfully added comment",
+                                comments: comments
+                            });
+                        }
+                    });
+                } else {
+                    res.status(403).json({
+                        status: 403,
+                        error: {
+                            code: "COMMENT_TOO_LONG",
+                            message: "The comment is too long. Length: " + req.body.comment.length + "; max. length: " + 251 + ";"
+                        },
+                        timestamp: Date.now()
+                    });
+                }
+            } else {
+                res.status(404).json({
+                    status: 404,
+                    error: {
+                        code: "NO_POST_FOUND",
+                        message: "No post could be found with the following uid: " + post_id
+                    },
+                    timestamp: Date.now()
+                });
+            }
+        });
+    } else {
+        res.status(400).json({
+            status: 400,
+            error: {
+                code: "INVALID_BODY",
+                message: "No content could be found in the body! Required: UID, USERNAME, COMMENT"
+            },
+            timestamp: Date.now()
+        });
+    }
+});
+
+/* DELETE comment */
+router.delete('/comment/delete', firebase.verify, (req, res, next) => {
+    if(req.body.comment_id && req.body.post_id) {
+        var comment_id = req.body.comment_id;
+        var post_id = rq.body.post_id;
+
+        Post.findById(post_id, (error, post) => {
+            if(error) res.status(500).json({
+                status: 500,
+                error: error,
+                timestamp: Date.now()
+            });
+
+            if(post) {
+                var comments = post.comments;
+
+                if(comments.length > 0) {
+                    if(comments.some(e => e._id == comment_id)) {
+                        comments = comments.filter((object) => {return object._id == comment_id});
+
+                        // success
+                        res.status(200).json({
+                            status: 200,
+                            message: "Successfully removed comment from post",
+                            timestamp: Date.now()
+                        });
+                    } else {
+                        res.status(404).json({
+                            status: 404,
+                            error: {
+                                code: "COMMENT_NOT_FOUND",
+                                message: "No comment could be found with the id: " + comment_id,
+                                post_id: post_id 
+                            },
+                            timestamp: Date.now()
+                        });
+                    }
+                } else {
+                    res.status(404).json({
+                        status: 404,
+                        error: {
+                            code: "COMMENT_NOT_FOUND",
+                            message: "No comment could be found with the id: " + comment_id,
+                            post_id: post_id 
+                        },
+                        timestamp: Date.now()
+                    });
+                }
+            } else {
+                res.status(404).json({
+                    status: 404,
+                    error: {
+                        code: "NO_POST_FOUND",
+                        message: "No post could be found with the following uid: " + post_id
+                    },
+                    timestamp: Date.now()
+                });
+            }
+        });
+    } else {
+        res.status(400).json({
+            status: 400,
+            error: {
+                code: "INVALID_BODY",
+                message: "No content could be found in the body! Required: COMMENT_ID, POST_ID"
+            },
+            timestamp: Date.now()
         });
     }
 });

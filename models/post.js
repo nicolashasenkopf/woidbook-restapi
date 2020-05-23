@@ -15,6 +15,7 @@ var postSchema = new Schema({
     likes: {type: Array, default: Array},
     comments: {type: Array, default: Array},
     reports: {type: Array, default: Array},
+    mentions: {type: Array, default: Array},
     createdAt: {type: Date, default: Date.now()}
 });
 
