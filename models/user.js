@@ -39,7 +39,6 @@ var userSchema = new Schema({
         points: {type: Number, default: 0},
         level: {type: Number, default: 0},
     }},
-    posts: {type: Array, default: new Array()},
     stories: {type: Array, default: new Array()},
     verified: {type: Boolean, default: false},
     blocked: {type: Array, default: new Array()},

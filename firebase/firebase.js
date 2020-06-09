@@ -4,8 +4,8 @@ var serviceAccount = require('./firebase_admin/woidbook-b76ba-firebase-adminsdk-
 
 // authentication
 function verify(req, res, next) {
-    if(req.body.id_token != null) {
-      auth.verifyIdToken(req.body.id_token)
+    if(req.headers.authorization != null) {
+      auth.verifyIdToken(req.headers.authorization)
         .then((decodedToken) => {
           if(decodedToken.uid != null) {
             req.decodedToken = decodedToken;
@@ -16,6 +16,15 @@ function verify(req, res, next) {
           error: error,
           timestamp: Date.now()
         }));
+    } else {
+      res.status(401).json({
+        status: 401,
+        error: {
+          code: "MISSING_HEADER",
+          message: "No authorization header found"
+        },
+        timestamp: Date.now()
+      });
     }
 }
 

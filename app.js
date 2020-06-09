@@ -11,9 +11,10 @@ require('./firebase/firebase').load();
 mongoose.connect("mongodb+srv://" + secrets.dbUser + ":" + secrets.dbPassword + "@woidbook-iwwlt.mongodb.net/" + secrets.dbName + "?retryWrites=true&w=majority");
 
 // router
-var indexRouter = require('./routes/index');
-var userRouter = require('./routes/user');
-var postRouter = require('./routes/post');
+var indexRouter = require('./routes/v1/index');
+var userRouter = require('./routes/v1/user');
+var postRouter = require('./routes/v1/post');
+var storyRouter = require('./routes/v1/story');
 
 var express = require('express');
 var app = express();
@@ -26,9 +27,10 @@ app.use(bodyparser.json());
 app.use(bodyparser.urlencoded({ extended: false }));
 app.use(cookieParser());
 
-app.use('/', indexRouter);
-app.use('/user', userRouter);
-app.use('/post', postRouter);
+app.use('/v1/', indexRouter);
+app.use('/v1/user', userRouter);
+app.use('/v1/post', postRouter);
+app.use('/v1/story', storyRouter);
 
 // catch 404 and forward to error handler
 app.use(function(req, res, next) {

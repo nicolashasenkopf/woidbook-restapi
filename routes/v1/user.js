@@ -125,6 +125,58 @@ router.get('/:uid/profile', firebase.verify, (req, res, next) => {
   });
 });
 
+/* POST edit e-mail */
+router.post('/email/edit', firebase.verify, (req, res, next) => {
+  if(req.body.email) {
+    var email = req.body.email;
+    User.findById(req.decodedToken.uid, (error, user) => {
+      if(error) res.status(500).json({
+        status: 500,
+        error: error,
+        timestamp: Date.now()
+      });
+
+      if(user) {
+        if(email != user.email) {
+          user.update({'email': email}, (error) => {
+            if(error) {
+              if(error) res.status(500).json({
+                status: 500,
+                error: error,
+                timestamp: Date.now()
+              });
+            } else {
+              res.status(200).json({
+                status: 200,
+                message: "Successfully changed email to: " + email,
+                timestamp: Date.now()
+              });
+            }
+          })
+        } else {
+          res.status(403).json({
+            status: 403,
+            error: {
+              code: "SAME_EMAIL",
+              message: "This email is already used!"
+            },
+            timestamp: Date.now()
+          });
+        }
+      } else {
+        res.status(404).json({
+          status: 404,
+          error: {
+            code: "NO_USER_FOUND",
+            message: "No user could be found with the following uid: " + uid
+          },
+          timestamp: Date.now()
+        });
+      }
+    });
+  }
+});
+
 /* POST un/follow */
 router.post('/follow', firebase.verify, (req, res, next) => {
   var uid = req.body.uid;
@@ -376,6 +428,8 @@ router.post('/options/privacy/update', firebase.verify, (req, res, next) => {
   }
 });
 
+
+// create unique id
 function create_UUID(){
   var dt = new Date().getTime();
   var uuid = 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, function(c) {
