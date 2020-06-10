@@ -20,30 +20,60 @@ router.get('/:uid/all', firebase.verify, (req, res, next) => {
         });
 
         if(user) {
-            if(user.stories.length > 0) {
-                if(user_id == req.decodedToken.uid) {
-                    res.status(200).json({
-                        status: 200,
-                        message: "Successfully got all stories",
-                        stories: user.stories,
-                        timestamp: Date.now()
-                    });
+            if(user.options.privacy.privat == false) {
+                if(user.stories.length > 0) {
+                    if(user_id == req.decodedToken.uid) {
+                        res.status(200).json({
+                            status: 200,
+                            message: "Successfully got all stories",
+                            stories: user.stories,
+                            timestamp: Date.now()
+                        });
+                    } else {
+                        delete user.stories.views;
+                        res.status(200).json({
+                            status: 200,
+                            message: "Successfully got all stories",
+                            stories: user.stories,
+                            timestamp: Date.now()
+                        });
+                    }
                 } else {
-                    delete user.stories.views;
                     res.status(200).json({
                         status: 200,
-                        message: "Successfully got all stories",
-                        stories: user.stories,
+                        message: "Successfully got all stories from the user but the array is empty",
+                        stories: [],
                         timestamp: Date.now()
                     });
                 }
             } else {
-                res.status(200).json({
-                    status: 200,
-                    message: "Successfully got all stories from the user but the array is empty",
-                    stories: [],
-                    timestamp: Date.now()
-                });
+                if(user.follower.some(e => e.uid === req.decodedToken.uid)) {
+                    if(user_id == req.decodedToken.uid) {
+                        res.status(200).json({
+                            status: 200,
+                            message: "Successfully got all stories",
+                            stories: user.stories,
+                            timestamp: Date.now()
+                        });
+                    } else {
+                        delete user.stories.views;
+                        res.status(200).json({
+                            status: 200,
+                            message: "Successfully got all stories",
+                            stories: user.stories,
+                            timestamp: Date.now()
+                        });
+                    }
+                } else {
+                    res.status(403).json({
+                        status: 403,
+                        error: {
+                          code: "ACCOUNT_PRIVAT",
+                          message: "You are not a follower"
+                        },
+                        timestamp: Date.now()
+                    }); 
+                }
             }
         } else {
             res.status(404).json({

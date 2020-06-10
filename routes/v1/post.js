@@ -407,8 +407,8 @@ router.post('/comment/add', firebase.verify, (req, res, next) => {
     }
 });
 
-/* DELETE comment */
-router.delete('/comment/delete', firebase.verify, (req, res, next) => {
+/* POST comment */
+router.post('/comment/delete', firebase.verify, (req, res, next) => {
     if(req.body.comment_id && req.body.post_id) {
         var comment_id = req.body.comment_id;
         var post_id = rq.body.post_id;
