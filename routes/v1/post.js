@@ -1,12 +1,12 @@
 var express = require('express');
 var router = express.Router();
-var firebase = require('../firebase/firebase');
+var firebase = require('../../firebase/firebase');
 var multer = require('multer');
 var upload = multer({ dest: '/public/images', limits: { fieldSize: 10000000 } });
 
 // models
-var User = require('../models/user');
-var Post = require('../models/post');
+var User = require('../../models/user');
+var Post = require('../../models/post');
 
 /* GET postdata */
 router.get('/:uid', firebase.verify, (req, res, next) => {
@@ -20,12 +20,53 @@ router.get('/:uid', firebase.verify, (req, res, next) => {
           });
 
           if(post) {
-            res.status(200).json({
-                status: 200,
-                message: "Successfully got post object",
-                post: post,
-                timestamp: Date.now()
-            });
+            if(post.user._id == req.decodedToken.uid) {   
+                res.status(200).json({
+                    status: 200,
+                    message: "Successfully got post object",
+                    post: post,
+                    timestamp: Date.now()
+                });
+            } else {
+                User.findById(post.user._id, (error, user) => {
+                    if(error) res.status(500).json({
+                        status: 500,
+                        error: error,
+                        timestamp: Date.now()
+                    });
+
+                    if(user) {
+                        if(user.options.privacy.privat == true) {
+                            if(user.follower.some(e => e.uid === req.decodedToken.uid)) {
+                                delete post.reports;
+                                res.status(200).json({
+                                    status: 200,
+                                    message: "Successfully got post object",
+                                    post: post,
+                                    timestamp: Date.now()
+                                });
+                            } else {
+                                res.status(403).json({
+                                    status: 403,
+                                    error: {
+                                      code: "ACCOUNT_PRIVAT",
+                                      message: "You are not a follower"
+                                    },
+                                    timestamp: Date.now()
+                                });
+                            }
+                        } else {
+                            delete post.reports;
+                            res.status(200).json({
+                                status: 200,
+                                message: "Successfully got post object",
+                                post: post,
+                                timestamp: Date.now()
+                            });
+                        }
+                    }
+                });
+            }
           } else {  
             res.status(404).json({
                 status: 404,
@@ -309,8 +350,10 @@ router.post('/comment/add', firebase.verify, (req, res, next) => {
 
                     comments.push({
                         _id: create_UUID(),
-                        uid: req.decodedToken.uid,
-                        username: req.body.username,
+                        user: {
+                            uid: req.decodedToken.uid,
+                            username: req.body.username
+                        },
                         comment: req.body.comment,
                         mentions: mentions,
                         createdAt: Date.now()

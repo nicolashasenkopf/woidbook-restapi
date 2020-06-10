@@ -72,6 +72,15 @@ router.get('/:uid/profile', firebase.verify, (req, res, next) => {
               }
             }
           });
+        } else {
+          res.status(403).json({
+            status: 403,
+            error: {
+              code: "ACCOUNT_PRIVAT",
+              message: "You are not a follower"
+            },
+            timestamp: Date.now()
+          });
         }
       } else {
         // check if user is in blocked list
@@ -212,6 +221,7 @@ router.post('/follow', firebase.verify, (req, res, next) => {
         res.status(200).json({
           status: 200,
           message: "Successfully unfollowed user: " + uid,
+          timestamp: Date.now()
         });
       } else {
         User.findById(req.decodedToken.uid, (error, sender) => {
@@ -330,7 +340,8 @@ router.post('/options/information/update', firebase.verify, (req, res, next) => 
 
         res.status(200).json({
           status: 200,
-          message: "Successfully changed options (information)"
+          message: "Successfully changed options (information)",
+          timestamp: Date.now()
         });
       } else {
         res.status(404).json({
@@ -371,7 +382,8 @@ router.post('/options/notifications/update', firebase.verify, (req, res, next) =
 
         res.status(200).json({
           status: 200,
-          message: "Successfully changed options (notifications)"
+          message: "Successfully changed options (notifications)",
+          timestamp: Date.now()
         });
       } else {
         res.status(404).json({
@@ -412,7 +424,8 @@ router.post('/options/privacy/update', firebase.verify, (req, res, next) => {
 
         res.status(200).json({
           status: 200,
-          message: "Successfully changed options (privacy)"
+          message: "Successfully changed options (privacy)",
+          timestamp: Date.now()
         });
       } else {
         res.status(404).json({
