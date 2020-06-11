@@ -88,6 +88,64 @@ router.get('/:uid/all', firebase.verify, (req, res, next) => {
     });
 });
 
+/* POST add story */
+router.post('/add', firebase.verify, upload.fields([{name: 'image', maxCount: 1}]), (req, res, next) => {
+    User.findById(req.decodedToken.uid, (error, user) => {
+        if(error) res.status(500).json({
+            status: 500,
+            error: error,
+            timestamp: Date.now()
+        });
+
+        if(user) {
+            if(user.leveling.level > 9 || user.stories.length < 5) {
+                const story = {
+                    uid: create_UUID(),
+                    image_url: req.files["images"],
+                    views: [],
+                    music: req.body.music != null ? req.body.music : "",
+                    createdAt: Date.now()
+                }
+
+                user.stories.push(story);
+
+                user.update({'stories': user.stories}, (error) => {
+                    if(error) res.status(500).json({
+                        status: 500,
+                        error: error,
+                        timestamp: Date.now()
+                    });
+                });
+
+                res.status(200).json({
+                    status: 200,
+                    message: "Successfully added story",
+                    story: story,
+                    timestamp: Date.now()
+                })
+            } else {
+                res.status(403).json({
+                    status: 403,
+                    error: {
+                        code: "LEVEL_TOO_LOW",
+                        message: "You have to be at least level 10 to post more than 5 stories"
+                    },
+                    timestamp: Date.now()
+                });
+            }
+        } else {
+            res.status(404).json({
+                status: 404,
+                error: {
+                  code: "NO_USER_FOUND",
+                  message: "No user could be found with the following uid: " + req.decodedToken.uid
+                },
+                timestamp: Date.now()
+            });   
+        }
+    });
+});
+
 // create unique id
 function create_UUID(){
     var dt = new Date().getTime();
