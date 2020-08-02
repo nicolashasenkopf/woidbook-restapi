@@ -1,8 +1,9 @@
 var express = require('express');
 var router = express.Router();
+var path = require('path');
 var firebase = require('../../firebase/firebase');
-var multer = require('multer');
-var upload = multer({ dest: '/public/images', limits: { fieldSize: 10000000 } });
+
+const base_path = "http://api.woidbook.com/";
 
 // models
 var User = require('../../models/user');
@@ -139,13 +140,100 @@ router.get('/feed', firebase.verify, (req, res, next) => {
 });
 
 /* POST add post */ 
-router.post('/add', firebase.verify, upload.fields([{name: 'images', maxCount: 4}, {name: 'videos', maxCount: 4}]), (req, res, next) => {
+router.post('/add', firebase.verify, (req, res, next) => {
     // TODO File size check
+    var post_id = create_UUID();
+    var images = [];
+    var videos = [];
 
-    var images = req.files["images"];
-    var videos = req.files["videos"];
+    function isValid(file) {
+        if(file.mimetype == 'image/jpeg' || file.mimetype == 'image/jpg' || file.mimetype == 'image/png' || file.mimetype == 'audio/mp4') {
+            return true;
+        }
+        return false;
+    }
 
     if(req.body.content != null) {
+        if(req.files != null) {
+            if(req.files.images[0] != null) {
+                for(let i = 0; i < req.files.images.length; i++) {
+                    if(isValid(req.files.images[i])) {
+                        var filename = post_id + '-' + (i+1) + path.extname(req.files.images.name);
+                        req.files.images[i].mv('/public/post/images/' + filename, (error) => {
+                            if(error) res.status(500).json({
+                                status: 500,
+                                error: error,
+                                timestamp: Date.now()
+                            });
+                        });
+    
+                        images.push(base_path + "/post/images/" + filename);
+                    } else {
+                        res.status(403).json({
+                            status:  403,
+                            error: {
+                                code: "WRONG_IMAGE_ENDING",
+                                message: "The ending is invalid",
+                                mimetype: req.files.images[i].mimetype.toString()
+                            },
+                            timestamp: Date.now()
+                        });
+                        return;
+                    }
+                }
+            } else if(req.files.images != null) {
+                if(req.files.images != null) {
+                    if(isValid(req.files.images)) {
+                        var filename = post_id + '-1' + path.extname(req.files.images.name);
+                        req.files.images.mv('/public/post/images/' + filename, (error) => {
+                            if(error) res.status(500).json({
+                                status: 500,
+                                error: error,
+                                timestamp: Date.now()
+                            });
+                        });
+    
+                        images.push(base_path + "/post/images/" + filename);
+                    } else {
+                        res.status(403).json({
+                            status:  403,
+                            error: {
+                                code: "WRONG_IMAGE_ENDING",
+                                message: "The ending is invalid",
+                                mimetype: req.files.images.mimetype.toString()
+                            },
+                            timestamp: Date.now()
+                        });
+                    }
+                }
+            }
+    
+            if(req.files.videos != null) {
+                if(isValid(req.files.videos)) {
+                    var filename = post_id + '-1' + path.extname(req.files.videos.name);
+                    req.files.videos.mv('/public/post/videos/' + filename, (error) => {
+                        if(error) res.status(500).json({
+                            status: 500,
+                            error: error,
+                            timestamp: Date.now()
+                        });
+                    });
+    
+                    videos.push(base_path + "/post/videos/" + filename);
+                } else {
+                    res.status(403).json({
+                        status:  403,
+                        error: {
+                            code: "WRONG_VIDEO_ENDING",
+                            message: "The ending is invalid",
+                            mimetype: req.files.images.mimetype.toString()
+                        },
+                        timestamp: Date.now()
+                    });
+                }
+            }
+        }
+
         User.findById(req.decodedToken.uid, (error, user) => {
             if(error) res.status(500).json({
                 status: 500,
@@ -165,7 +253,7 @@ router.post('/add', firebase.verify, upload.fields([{name: 'images', maxCount: 4
                 }
 
                 var post = new Post();
-                post._id = create_UUID();
+                post._id = post_id;
                 post.user = {
                     _id: user._id,
                     username: user.username,
@@ -191,8 +279,8 @@ router.post('/add', firebase.verify, upload.fields([{name: 'images', maxCount: 4
                                     _id: create_UUID(),
                                     message: "@" + user.username + " hat einen deiner Beiträge kommentiert!",
                                     post_id: post._id,
-                                    seen = false,
-                                    action = false,
+                                    seen: false,
+                                    action: false,
                                     createdAt: Date.now()
                                 });
 
@@ -487,3 +575,5 @@ function create_UUID(){
     });
     return uuid;
 }
+
+module.exports = router;

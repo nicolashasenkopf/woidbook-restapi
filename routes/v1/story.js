@@ -1,12 +1,13 @@
 var express = require('express');
 var router = express.Router();
+var path = require('path');
 var firebase = require('../../firebase/firebase');
-var multer = require('multer');
-var upload = multer({ dest: '/public/story/images', limits: { fieldSize: 10000000 } });
 
 // models
 var User = require('../../models/user')
 var Post = require('../../models/post');
+
+const base_path = "http://api.woidbook.com/";
 
 /* GET all stories */
 router.get('/:uid/all', firebase.verify, (req, res, next) => {
@@ -89,7 +90,35 @@ router.get('/:uid/all', firebase.verify, (req, res, next) => {
 });
 
 /* POST add story */
-router.post('/add', firebase.verify, upload.fields([{name: 'image', maxCount: 1}]), (req, res, next) => {
+router.post('/add', firebase.verify, (req, res, next) => {
+
+    var image_url;
+
+    if(req.files && req.files.images != null) {
+        if(isValid(req.files.images)) {
+            var filename = post_id + '-1' + path.extname(req.files.images.name);
+            req.files.images.mv('/public/story/images/' + filename, (error) => {
+                if(error) res.status(500).json({
+                    status: 500,
+                    error: error,
+                    timestamp: Date.now()
+                });
+            });
+
+            image_url = base_path + "/story/images/" + filename;
+        } else {
+            res.status(403).json({
+                status:  403,
+                error: {
+                    code: "WRONG_IMAGE_ENDING",
+                    message: "The ending is invalid",
+                    mimetype: req.files.images.mimetype.toString()
+                },
+                timestamp: Date.now()
+            });
+        }
+    }
+
     User.findById(req.decodedToken.uid, (error, user) => {
         if(error) res.status(500).json({
             status: 500,
@@ -101,7 +130,7 @@ router.post('/add', firebase.verify, upload.fields([{name: 'image', maxCount: 1}
             if(user.leveling.level > 9 || user.stories.length < 5) {
                 const story = {
                     uid: create_UUID(),
-                    image_url: req.files["images"],
+                    image_url: image_url,
                     views: [],
                     music: req.body.music != null ? req.body.music : "",
                     createdAt: Date.now()

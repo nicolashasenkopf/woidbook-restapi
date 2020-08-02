@@ -1,9 +1,9 @@
 var express = require('express');
 var router = express.Router();
-var firebase = require('../firebase/firebase');
+var firebase = require('../../firebase/firebase');
 
 // models
-var User = require('../models/user');
+var User = require('../../models/user');
 
 /* GET userdata */
 router.get('/data', firebase.verify, function(req, res, next) {
@@ -265,8 +265,8 @@ router.post('/follow', firebase.verify, (req, res, next) => {
               user.notifications.push({
                 _id: create_UUID(),
                 message: "@" + sender.username + " folgt dir nun!",
-                seen = false,
-                action = false,
+                seen: false,
+                action: false,
                 createdAt: Date.now()
               });
 
@@ -298,8 +298,8 @@ router.post('/follow', firebase.verify, (req, res, next) => {
 
               user.notifications.push({
                 message: "@" + sender.username + " möchte dir folgen!",
-                seen = false,
-                action = true,
+                seen: false,
+                action: true,
                 createdAt: Date.now()
               });
 

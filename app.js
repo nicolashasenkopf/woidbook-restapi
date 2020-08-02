@@ -3,6 +3,9 @@ var cookieParser = require('cookie-parser');
 var logger = require('morgan');
 var bodyparser = require('body-parser');
 var http = require('http');
+var upload = require('express-fileupload');
+var mongoose =  require('mongoose');
+var secrets = require('./config/secrets');
 
 // firebase
 require('./firebase/firebase').load();
@@ -22,6 +25,7 @@ var app = express();
 // set up http server
 var httpServer = http.createServer(app);
 
+app.use(upload());
 app.use(logger('dev'));
 app.use(bodyparser.json());
 app.use(bodyparser.urlencoded({ extended: false }));
