@@ -5,7 +5,7 @@ var serviceAccount = require('../firebase_admin/woidbook-b76ba-firebase-adminsdk
 // authentication
 function verify(req, res, next) {
     if(req.headers.authorization != null) {
-      auth.verifyIdToken(req.headers.authorization)
+      admin.auth().verifyIdToken(req.headers.authorization)
         .then((decodedToken) => {
           if(decodedToken.uid != null) {
             req.decodedToken = decodedToken;

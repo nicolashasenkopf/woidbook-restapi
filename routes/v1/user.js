@@ -5,6 +5,45 @@ var firebase = require('../../firebase/firebase');
 // models
 var User = require('../../models/user');
 
+/* POST create user model */
+router.post('/create', firebase.verify, (req, res, next) => {
+  if(req.body.uid && req.body.username && req.body.name && req.body.email && req.body.privat) {
+    User.find({"username": req.body.username, "email": req.body.email, "_id": req.body.uid}, (error, users) => {
+      if(error) res.status(500).json({
+        status: 500,
+        error: error,
+        timestamp: Date.now()
+      });
+
+      if(users.length == 0) {
+        var user = new User();
+        user._id = req.body.uid;
+        user.username = req.body.username;
+        user.name = req.body.name;
+        user.email = req.body.email;
+        user.options.privacy.privat = req.body.privat === true ? true : false;
+
+        user.save((error) => {
+          if(error) res.status(500).json({
+            status: 500,
+            error: error,
+            timestamp: Date.now()
+          });
+        })
+      } else {
+        res.status(403).json({
+          status: 403,
+          error: {
+            code: "USERNAME_ALREADY_USED",
+            message: "This username is already used",
+          },
+          timestamp: Date.now()
+        });
+      }
+    });
+  }
+});
+
 /* GET userdata */
 router.get('/data', firebase.verify, function(req, res, next) {
   User.findById(req.decodedToken.uid, (error, user) => {
