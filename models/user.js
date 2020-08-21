@@ -11,13 +11,13 @@ var userSchema = new Schema({
     follower: {type: Array, default: new Array()},
     followed: {type: Array, default: new Array()},
     notifications: {type: Array, default: new Array()},
-    options: {type: Object, default: {
-        information: {type: Object, default: {
+    options: {
+        information: {
             birthday: {type: String, default: ""},
             description: {type: String, default: ""},
             region: {type: String, default: ""},
             town: {type: String, default: ""}
-        }},
+        },
         notifications: { 
             comments: {type: Boolean, default: true},
             level: {type: Boolean, default: true},
@@ -29,16 +29,16 @@ var userSchema = new Schema({
             birthday: {type: Boolean, default: false},
             comments: {type: Boolean, default: true},
             likes: {type: Boolean, default: true},
-            privat: {type: Boolean, default: false},
+            private: {type: Boolean, default: false},
             town: {type: Boolean, default: false},
         }
-    }},
-    leveling: {type: Object, default: {
+    },
+    leveling: {
         lastPoints: {type: Number, default: 0},
         lastPointsGotFrom: {type: String, default: ""},
         points: {type: Number, default: 0},
         level: {type: Number, default: 0},
-    }},
+    },
     stories: {type: Array, default: new Array()},
     verified: {type: Boolean, default: false},
     blocked: {type: Array, default: new Array()},

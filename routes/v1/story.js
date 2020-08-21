@@ -21,7 +21,7 @@ router.get('/:uid/all', firebase.verify, (req, res, next) => {
         });
 
         if(user) {
-            if(user.options.privacy.privat == false) {
+            if(user.options.privacy.private == false) {
                 if(user.stories.length > 0) {
                     if(user_id == req.decodedToken.uid) {
                         res.status(200).json({
@@ -69,7 +69,7 @@ router.get('/:uid/all', firebase.verify, (req, res, next) => {
                     res.status(403).json({
                         status: 403,
                         error: {
-                          code: "ACCOUNT_PRIVAT",
+                          code: "ACCOUNT_PRIVATE",
                           message: "You are not a follower"
                         },
                         timestamp: Date.now()

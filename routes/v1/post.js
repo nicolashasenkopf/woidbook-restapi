@@ -37,7 +37,7 @@ router.get('/:uid', firebase.verify, (req, res, next) => {
                     });
 
                     if(user) {
-                        if(user.options.privacy.privat == true) {
+                        if(user.options.privacy.private == true) {
                             if(user.follower.some(e => e.uid === req.decodedToken.uid)) {
                                 delete post.reports;
                                 res.status(200).json({
@@ -50,7 +50,7 @@ router.get('/:uid', firebase.verify, (req, res, next) => {
                                 res.status(403).json({
                                     status: 403,
                                     error: {
-                                      code: "ACCOUNT_PRIVAT",
+                                      code: "ACCOUNT_PRIVATE",
                                       message: "You are not a follower"
                                     },
                                     timestamp: Date.now()
@@ -100,23 +100,12 @@ router.get('/feed', firebase.verify, (req, res, next) => {
 
             if(followed.length > 0) {
                 Post.find({'user._id': { $in: followed }}).sort({'createdAt': -1}).limit(40).then((posts) => {
-                    if(posts) {
-                        res.status(200).json({
-                            status: 200,
-                            message: "Successfully got all posts",
-                            posts: posts,
-                            timestamp: Date.now()
-                        });
-                    } else {
-                        res.status(404).json({
-                            status: 404,
-                            error: {
-                                code: "NO_POST_FOUND",
-                                message: "No posts could be found"
-                            },
-                            timestamp: Date.now()
-                        });
-                    }
+                    res.status(200).json({
+                        status: 200,
+                        message: "Successfully got all posts",
+                        posts: posts,
+                        timestamp: Date.now()
+                    });
                 });
             } else {
                 res.status(200).json({

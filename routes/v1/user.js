@@ -2,12 +2,15 @@ var express = require('express');
 var router = express.Router();
 var firebase = require('../../firebase/firebase');
 
+// Cache
+var usernameCache = [];
+
 // models
 var User = require('../../models/user');
 
 /* POST create user model */
 router.post('/create', firebase.verify, (req, res, next) => {
-  if(req.body.uid && req.body.username && req.body.name && req.body.email && req.body.privat) {
+  if(req.body.startLetters.length != 0) {
     User.find({"username": req.body.username, "email": req.body.email, "_id": req.body.uid}, (error, users) => {
       if(error) res.status(500).json({
         status: 500,
@@ -21,7 +24,10 @@ router.post('/create', firebase.verify, (req, res, next) => {
         user.username = req.body.username;
         user.name = req.body.name;
         user.email = req.body.email;
-        user.options.privacy.privat = req.body.privat === true ? true : false;
+        user.startLetters = req.body.startLetters;
+        user.options.privacy.private = req.body.private === true ? true : false;
+        user.createdAt = Date.now();
+        user.lastConnection = Date.now();
 
         user.save((error) => {
           if(error) res.status(500).json({
@@ -29,7 +35,16 @@ router.post('/create', firebase.verify, (req, res, next) => {
             error: error,
             timestamp: Date.now()
           });
-        })
+        });
+
+        usernameCache = usernameCache.filter(value => value.value == req.body.username);
+
+        res.status(200).json({
+          status: 200,
+          user: user,
+          message: "Successfully added user to database",
+          timestamp: Date.now()
+        });
       } else {
         res.status(403).json({
           status: 403,
@@ -41,6 +56,59 @@ router.post('/create', firebase.verify, (req, res, next) => {
         });
       }
     });
+  }
+});
+
+router.get('/:username/available', (req, res, next) => {
+  var username = req.params.username;
+
+  var cache = usernameCache.filter(e => e.value == username);
+  if(cache.length != 0) {
+    if(cache.find(obj => obj.value == username).state == false) {
+      res.status(200).json({
+        status: 200,
+        state: true,
+        message: "This username is available",
+        username: cache.value,
+        timestamp: Date.now()
+      });
+    } else {
+      res.status(200).json({
+        status: 200,
+        state: false,
+        message: "This username is NOT available",
+        username: cache.value,
+        timestamp: Date.now()
+      });
+    }
+  } else {
+    User.findOne({"username": username}, (error, user) => {
+      if(error) res.status(500);
+
+      if(user) {
+        console.log("test");
+        res.status(200).json({
+          status: 200,
+          state: false,
+          message: "This username is NOT available",
+          username: cache.value,
+          timestamp: Date.now()
+        });
+
+        usernameCache.push({value: username, state: true});
+      } else {
+        res.status(200).json({
+          status: 200,
+          state: true,
+          message: "This username is available",
+          username: cache.value,
+          timestamp: Date.now()
+        });
+
+        usernameCache.push({value: username, state: false});
+      }
+
+    })
   }
 });
 
@@ -85,7 +153,7 @@ router.get('/:uid/profile', firebase.verify, (req, res, next) => {
 
     if(user) {
       // Check if user account is privat
-      if(user.options.privacy.privat == true) {
+      if(user.options.privacy.private == true) {
         // Check if user is in follower list
         if(user.follower.some(e => e.uid === req.decodedToken.uid)) {
           res.status(200).json({
@@ -291,8 +359,8 @@ router.post('/follow', firebase.verify, (req, res, next) => {
           });
 
           if(sender) {
-            // check if user isn't privat
-            if(user.options.privacy.privat == false) {
+            // check if user isn't private
+            if(user.options.privacy.private == false) {
               // Add follower to follower list
               user.follower.push({
                 type: "ACCEPTED",
@@ -377,7 +445,7 @@ router.post('/follow', firebase.verify, (req, res, next) => {
 
 /* POST update information option */
 router.post('/options/information/update', firebase.verify, (req, res, next) => {
-  if(req.body.birthday && req.body.description && req.body.region && req.body.town) {
+  if(req.body != null) {
     User.findById(req.decodedToken.uid, (error, user) => {
       if(error) res.status(500).json({
         status: 500,
@@ -418,7 +486,7 @@ router.post('/options/information/update', firebase.verify, (req, res, next) => 
 
 /* POST update notifications option */
 router.post('/options/notifications/update', firebase.verify, (req, res, next) => {
-  if(req.body.comments && req.body.level && req.body.likes && req.body.mentions && req.body.requests) {
+  if(req.body != null) {
     User.findById(req.decodedToken.uid, (error, user) => {
       if(error) res.status(500).json({
         status: 500,
@@ -460,7 +528,7 @@ router.post('/options/notifications/update', firebase.verify, (req, res, next) =
 
 /* POST update privacy option */
 router.post('/options/privacy/update', firebase.verify, (req, res, next) => {
-  if(req.body.comments && req.body.birthday && req.body.likes && req.body.town && req.body.privat) {
+  if(req.body != null) {
     User.findById(req.decodedToken.uid, (error, user) => {
       if(error) res.status(500).json({
         status: 500,
@@ -474,12 +542,12 @@ router.post('/options/privacy/update', firebase.verify, (req, res, next) => {
           birthday: req.body.birthday,
           likes: req.body.likes,
           town: req.body.town,
-          privat: req.body.privat
+          private: req.body.private
         }
 
         user.options.privacy = privacy;
 
-        user.update({'options': user.options});
+        user.update({'options': user.options}, (err) => console.error(err));
 
         res.status(200).json({
           status: 200,
