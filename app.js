@@ -18,6 +18,7 @@ var indexRouter = require('./routes/v1/index');
 var userRouter = require('./routes/v1/user');
 var postRouter = require('./routes/v1/post');
 var storyRouter = require('./routes/v1/story');
+var searchRouter = require('./routes/v1/search');
 
 var express = require('express');
 var app = express();
@@ -30,11 +31,13 @@ app.use(logger('dev'));
 app.use(bodyparser.json());
 app.use(bodyparser.urlencoded({ extended: false }));
 app.use(cookieParser());
+app.use(express.static('public'));
 
 app.use('/v1/', indexRouter);
 app.use('/v1/user', userRouter);
 app.use('/v1/post', postRouter);
 app.use('/v1/story', storyRouter);
+app.use('/v1/search', searchRouter);
 
 // catch 404 and forward to error handler
 app.use(function(req, res, next) {

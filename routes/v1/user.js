@@ -11,7 +11,7 @@ var User = require('../../models/user');
 /* POST create user model */
 router.post('/create', firebase.verify, (req, res, next) => {
   if(req.body.startLetters.length != 0) {
-    User.find({"username": req.body.username, "email": req.body.email, "_id": req.body.uid}, (error, users) => {
+    User.find({"username": req.body.username.toLowerCase(), "email": req.body.email, "_id": req.body.uid}, (error, users) => {
       if(error) res.status(500).json({
         status: 500,
         error: error,
@@ -21,7 +21,7 @@ router.post('/create', firebase.verify, (req, res, next) => {
       if(users.length == 0) {
         var user = new User();
         user._id = req.body.uid;
-        user.username = req.body.username;
+        user.username = req.body.username.toLowerCase();
         user.name = req.body.name;
         user.email = req.body.email;
         user.startLetters = req.body.startLetters;
@@ -37,7 +37,7 @@ router.post('/create', firebase.verify, (req, res, next) => {
           });
         });
 
-        usernameCache = usernameCache.filter(value => value.value == req.body.username);
+        usernameCache = usernameCache.filter(value => value.value == req.body.username.toLowerCase());
 
         res.status(200).json({
           status: 200,
@@ -60,7 +60,7 @@ router.post('/create', firebase.verify, (req, res, next) => {
 });
 
 router.get('/:username/available', (req, res, next) => {
-  var username = req.params.username;
+  var username = req.params.username.toLowerCase();
 
   var cache = usernameCache.filter(e => e.value == username);
   if(cache.length != 0) {
@@ -463,7 +463,7 @@ router.post('/options/information/update', firebase.verify, (req, res, next) => 
 
         user.options.information = information;
 
-        user.update({'options': user.options});
+        user.update({'options': user.options}, (err) => console.error(err));
 
         res.status(200).json({
           status: 200,

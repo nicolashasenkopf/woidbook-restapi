@@ -3,14 +3,14 @@ var router = express.Router();
 var path = require('path');
 var firebase = require('../../firebase/firebase');
 
-const base_path = "http://api.woidbook.com/";
+const base_path = "http://localhost:8000";
 
 // models
 var User = require('../../models/user');
 var Post = require('../../models/post');
 
 /* GET postdata */
-router.get('/:uid', firebase.verify, (req, res, next) => {
+router.get('/single/:uid', firebase.verify, (req, res, next) => {
     var uid = req.params.uid;
 
     Post.findById(uid, (error, post) => {
@@ -97,6 +97,7 @@ router.get('/feed', firebase.verify, (req, res, next) => {
             for(let i = 0; i < user.followed.length; i++) {
                 followed.push(user.followed[i].uid);
             }
+            followed.push(uid);
 
             if(followed.length > 0) {
                 Post.find({'user._id': { $in: followed }}).sort({'createdAt': -1}).limit(40).then((posts) => {
@@ -136,11 +137,14 @@ router.post('/add', firebase.verify, (req, res, next) => {
     var videos = [];
 
     function isValid(file) {
-        if(file.mimetype == 'image/jpeg' || file.mimetype == 'image/jpg' || file.mimetype == 'image/png' || file.mimetype == 'audio/mp4') {
+        if(file.mimetype == 'image/jpeg' || file.mimetype == 'image/jpg' || file.mimetype == 'image/png' || file.mimetype == 'audio/mp4' || file.mimetype == 'application/octet-stream') {
             return true;
         }
         return false;
     }
+
+    console.log(req.body);
+    console.log(req.files);
 
     if(req.body.content != null) {
         if(req.files != null) {
@@ -148,7 +152,7 @@ router.post('/add', firebase.verify, (req, res, next) => {
                 for(let i = 0; i < req.files.images.length; i++) {
                     if(isValid(req.files.images[i])) {
                         var filename = post_id + '-' + (i+1) + path.extname(req.files.images.name);
-                        req.files.images[i].mv('/public/post/images/' + filename, (error) => {
+                        req.files.images[i].mv('./public/post/images/' + filename, (error) => {
                             if(error) res.status(500).json({
                                 status: 500,
                                 error: error,
@@ -174,12 +178,16 @@ router.post('/add', firebase.verify, (req, res, next) => {
                 if(req.files.images != null) {
                     if(isValid(req.files.images)) {
                         var filename = post_id + '-1' + path.extname(req.files.images.name);
-                        req.files.images.mv('/public/post/images/' + filename, (error) => {
-                            if(error) res.status(500).json({
-                                status: 500,
-                                error: error,
-                                timestamp: Date.now()
-                            });
+                        req.files.images.mv('./public/post/images/' + filename, (error) => {
+                            if(error) {
+                                console.log(error);
+                                 res.status(500).json({
+                                    status: 500,
+                                    error: error,
+                                    timestamp: Date.now()
+                                });
+                                return;
+                            }
                         });
     
                         images.push(base_path + "/post/images/" + filename);
@@ -200,7 +208,7 @@ router.post('/add', firebase.verify, (req, res, next) => {
             if(req.files.videos != null) {
                 if(isValid(req.files.videos)) {
                     var filename = post_id + '-1' + path.extname(req.files.videos.name);
-                    req.files.videos.mv('/public/post/videos/' + filename, (error) => {
+                    req.files.videos.mv('./public/post/videos/' + filename, (error) => {
                         if(error) res.status(500).json({
                             status: 500,
                             error: error,
@@ -332,13 +340,11 @@ router.post('/like', firebase.verify, (req, res, next) => {
             });
 
             if(post) {
-                var likes = post.likes;
-
                 // check if user has already liked the post
-                if(likes.some(e => e.uid == req.decodedToken.uid)) {
-                    likes = likes.filter((object) => {return object.uid == req.decodedToken.uid});
-                    
-                    post.update({'likes': likes}, (error) => {
+                if(post.likes.some(e => e.uid == req.decodedToken.uid)) {
+                    post.likes = post.likes.filter(function(object) {return object.uid != req.decodedToken.uid});
+
+                    post.update({'likes': post.likes}, (error) => {
                         if(error) {
                             res.status(500).json({
                                 status: 500,
@@ -354,13 +360,13 @@ router.post('/like', firebase.verify, (req, res, next) => {
                         }
                     });
                 } else {
-                    likes.push({
+                    post.likes.push({
                         uid: req.decodedToken.uid,
                         username: username,
                         createdAt: Date.now()
                     });
 
-                    post.update({'likes': likes}, (error) => {
+                    post.update({'likes': post.likes}, (error) => {
                         if(error) {
                             res.status(500).json({
                                 status: 500,
@@ -401,7 +407,8 @@ router.post('/like', firebase.verify, (req, res, next) => {
 
 /* POST comment post */
 router.post('/comment/add', firebase.verify, (req, res, next) => {
-    if(req.body.uid && req.body.comment && req.body.username) {
+    // uid (post), comment, username
+    if(req.body != null) {
         var post_id = req.body.uid;
         
         Post.findById(post_id, (error, post) => {
