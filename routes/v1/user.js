@@ -59,6 +59,51 @@ router.post('/create', firebase.verify, (req, res, next) => {
   }
 });
 
+router.post('/profile/image', firebase.verify, (req, res, next) => {
+  function isValid(file) {
+    if(file.mimetype == 'image/jpeg' || file.mimetype == 'image/jpg' || file.mimetype == 'image/png' || file.mimetype == 'application/octet-stream') {
+        return true;
+    }
+    return false;
+  }
+
+  if(req.files != null) {
+    if(req.files.images != null) {
+      if(isValid(req.files.images)) {
+          var filename = req.decodedToken.uid + path.extname(req.files.images.name);
+          req.files.images.mv('./public/user/images/' + filename, (error) => {
+              if(error) {
+                  console.log(error);
+                   res.status(500).json({
+                      status: 500,
+                      error: error,
+                      timestamp: Date.now()
+                  });
+                  return;
+              }
+          });
+
+          var path = base_path + "/user/images/" + filename;
+          res.status(200).json({
+            status: 200,
+            imageURL: path,
+            timestamp: Date.now()
+          });
+      } else {
+          res.status(403).json({
+              status:  403,
+              error: {
+                  code: "WRONG_IMAGE_ENDING",
+                  message: "The ending is invalid",
+                  mimetype: req.files.images.mimetype.toString()
+              },
+              timestamp: Date.now()
+          });
+      }
+  }
+  }
+});
+
 router.get('/:username/available', (req, res, next) => {
   var username = req.params.username.toLowerCase();
 
