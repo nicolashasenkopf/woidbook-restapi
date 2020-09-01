@@ -19,6 +19,7 @@ router.get('/*', firebase.verify, function(req, res, next) {
                 // limit the response to the minimum
                 for(let i = 0; i < users.length; i++) {
                     users[i] = {
+                        "_id": users[i]._id,
                         "username": users[i].username,
                         "name": users[i].name,
                         "private": users[i].options.privacy.private

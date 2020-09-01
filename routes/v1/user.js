@@ -327,26 +327,28 @@ router.post('/follow', firebase.verify, (req, res, next) => {
     if(user) {
       // check if user is in follower list
       if(user.follower.some(e => e.uid == req.decodedToken.uid)) {
-        user.follower = user.follower.filter((object) => {return object.uid == req.decodedToken.uid});
+        console.log(user.follower, req.decodedToken.uid);
+        user.follower = user.follower.filter((object) => {return object.uid != req.decodedToken.uid});
 
-        user.update({'follower': user.follower}).then(() => {
-          User.findById(req.decodedToken.uid, (error, sender) => {
-            if(error) res.status(500).json({
-              status: 500,
-              error: error,
-              timestamp: Date.now()
-            });
-  
-            if(sender) {
-              sender.followed = sender.followed.filter((object) => {return object.uid == uid});
-  
-              sender.update({'followed': sender.followed});
-            }
+        user.update({'follower': user.follower}, (error) => {if(error) console.error(error)});
+
+        User.findById(req.decodedToken.uid, (error, sender) => {
+          if(error) res.status(500).json({
+            status: 500,
+            error: error,
+            timestamp: Date.now()
           });
-        });
+
+          if(sender) {
+            sender.followed = sender.followed.filter((object) => {return object.uid != uid});
+
+            sender.update({'followed': sender.followed}, (error) => {if(error) console.log(error)});
+          }
+        })
 
         res.status(200).json({
           status: 200,
+          type: "UNFOLLOWED",
           message: "Successfully unfollowed user: " + uid,
           timestamp: Date.now()
         });
@@ -365,7 +367,7 @@ router.post('/follow', firebase.verify, (req, res, next) => {
               user.follower.push({
                 type: "ACCEPTED",
                 uid: req.decodedToken.uid,
-                username: req.body.username,
+                username: sender.username,
                 createdAt: Date.now()
               });
 
@@ -387,17 +389,18 @@ router.post('/follow', firebase.verify, (req, res, next) => {
 
               // Update database
               user.update({'follower': user.follower, 'notifications': user.notifications}).then(() => {
-                sender.update({'followed': sender.followed});
+                sender.update({'followed': sender.followed}, (error) => console.log(error));
               });
 
               res.status(200).json({
                 status: 200,
+                type: "ACCEPTED",
                 message: "Successfully followed user: " + uid,
                 timestamp: Date.now()
               });
             } else {
               user.follower.push({
-                type: "SENT_REQUEST",
+                type: "REQUEST",
                 uid: req.decodedToken.uid,
                 username: req.body.username,
                 createdAt: Date.now()
