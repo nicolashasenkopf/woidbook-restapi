@@ -10,7 +10,7 @@ const apiLimiter = rateLimit({
 });
 
 /* GET changelog */
-router.get('/get', apiLimiter, function(req, res, next) {
+router.get('/get', function(req, res, next) {
   Changelog.find({}).sort({'timestamp': -1}).exec((error, changelogs) => {
     if(error) console.error(error);
 
