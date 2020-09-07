@@ -439,6 +439,7 @@ router.post('/comment/add', firebase.verify, (req, res, next) => {
                             username: req.body.username
                         },
                         comment: req.body.comment,
+                        replies: [],
                         mentions: mentions,
                         createdAt: Date.now()
                     });
@@ -490,6 +491,60 @@ router.post('/comment/add', firebase.verify, (req, res, next) => {
         });
     }
 });
+
+router.post('/comment/replie', firebase.verify, (req, res, next) => {
+    if(req.body != null) {
+        var post_id = req.body.postid
+        var comment_id = req.body.commentid;
+        var comment = req.body.comment;
+        var username = req.body.username;
+
+        Post.findById(post_id, (error, post) => {
+            if(error) console.error(error);
+
+            if(post) {
+                var commentObject = post.comments.filter((object) => object._id == comment_id);
+                if(commentObject != null) {
+                    commentObject.replies.push({
+                        _id: create_UUID(),
+                        username: username,
+                        comment: comment,
+                        createdAt: Date.now()
+                    });
+
+                    var commentArray = post.comments.filter((object) => object._id != comment_id);
+                    commentArray.push(commentObject);
+
+                    post.update({'comments': commentArray}, (error) => {if(error) console.error(error)});
+
+                    res.status(200).json({
+                        status: 200,
+                        replies: commentObject.replies,
+                        date: Date.now()
+                    })
+                }
+            } else {
+                res.status(404).json({
+                    status: 404,
+                    error: {
+                        code: "NO_POST_FOUND",
+                        message: "No post could be found with the following uid: " + post_id
+                    },
+                    timestamp: Date.now()
+                });
+            }
+        })
+    } else {
+        res.status(400).json({
+            status: 400,
+            error: {
+                code: "INVALID_BODY",
+                message: "No content could be found in the body! Required: POST_ID, COMMENT_ID, COMMENT, USERNAME"
+            },
+            timestamp: Date.now()
+        });
+    }
+})
 
 /* POST comment */
 router.post('/comment/delete', firebase.verify, (req, res, next) => {
