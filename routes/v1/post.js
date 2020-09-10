@@ -3,7 +3,7 @@ var router = express.Router();
 var path = require('path');
 var firebase = require('../../firebase/firebase');
 
-const base_path = "http://localhost:8000";
+const base_path = "https://api.woidbook.com";
 
 // models
 var User = require('../../models/user');
