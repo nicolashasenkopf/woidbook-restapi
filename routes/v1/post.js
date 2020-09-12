@@ -503,7 +503,7 @@ router.post('/comment/replie', firebase.verify, (req, res, next) => {
             if(error) console.error(error);
 
             if(post) {
-                var commentObject = post.comments.filter((object) => object._id == comment_id);
+                var commentObject = post.comments.filter((object) => object._id == comment_id)[0];
                 if(commentObject != null) {
                     commentObject.replies.push({
                         _id: create_UUID(),
