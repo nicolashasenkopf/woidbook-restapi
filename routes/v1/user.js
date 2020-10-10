@@ -234,6 +234,8 @@ router.get('/:uid/profile', firebase.verify, (req, res, next) => {
               code: "ACCOUNT_PRIVAT",
               message: "You are not a follower"
             },
+            name: user.name,
+            username: user.username,
             timestamp: Date.now()
           });
         }
@@ -273,6 +275,8 @@ router.get('/:uid/profile', firebase.verify, (req, res, next) => {
               code: "BLOCKED_BY_USER",
               message: "You are blocked by the user with the following uid: " + uid
             },
+            name: user.name,
+            username: user.username,
             timestamp: Date.now()
           });
         }
