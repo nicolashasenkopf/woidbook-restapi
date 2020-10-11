@@ -40,6 +40,7 @@ var userSchema = new Schema({
         level: {type: Number, default: 0},
     },
     stories: {type: Array, default: new Array()},
+    savedPosts: {type: Array, default: new Array()},
     verified: {type: Boolean, default: false},
     blocked: {type: Array, default: new Array()},
     lastConnection: {type: Date, default: Date.now()},
