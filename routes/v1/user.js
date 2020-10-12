@@ -467,7 +467,7 @@ router.post('/follow', firebase.verify, (req, res, next) => {
                 createdAt: Date.now()
               });
 
-              user.update({'follower': user.follower});
+              user.update({'follower': user.follower, 'notifications': user.notifications}, (err) => console.error(err));
 
               res.status(200).json({
                 status: 200,
