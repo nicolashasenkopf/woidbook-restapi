@@ -81,6 +81,88 @@ router.get('/single/:uid', firebase.verify, (req, res, next) => {
     });
 });
 
+/* GET LIST OF POSTS */
+router.get('/list/', firebase.verify, (req, res, next) => {
+    if(req.query.posts) {
+        var postIDs = req.query.posts.split(',');
+        Post.find({'_id': postIDs}, (error, posts) => {
+            if(error) res.status(500).json({
+                status: 500,
+                error: error,
+                timestamp: Date.now()
+            });
+
+            if(posts) {
+                for(let i = 0; i < posts.length; i++) {
+                    delete posts[i].reports
+                }
+                res.status(200).json({
+                    status: 200,
+                    posts: posts,
+                    timestamp: Date.now()
+                });
+            } else {
+                res.status(404).json({
+                    status: 404,
+                    error: {
+                      code: "NO_POST_FOUND",
+                      message: "No posts could be found with the given query"
+                    },
+                    timestamp: Date.now()
+                });
+            }
+        });
+    } else {
+        res.status(404).json({
+            status: 404,
+            error: {
+              code: "NO_POST_FOUND",
+              message: "Invalid query"
+            },
+            timestamp: Date.now()
+        });
+    }
+});
+
+/* POST SAVE POST */
+router.post('/favorite', firebase.verify, (req, res, next) => {
+    var postID = req.body.postid;
+    User.findById(req.decodedToken.uid, (error, user) => {
+        if(error) res.status(500).json({
+            status: 500,
+            error: error,
+            timestamp: Date.now()
+        });
+
+        if(user) {
+            user.savedPosts.push(postID);
+            user.update({'savedPosts': user.savedPosts}, (err) => {
+                if(err) res.status(500).json({
+                    status: 500,
+                    error: err,
+                    timestamp: Date.now()
+                });
+            });
+
+            res.status(200).json({
+                status: 200,
+                savedPosts: user.savedPosts,
+                timestamp: Date.now()
+            });
+        } else {
+            res.status(404).json({
+                status: 404,
+                error: {
+                    code: "NO_USER_FOUND",
+                    message: "No user could be found with the following uid: " + uid
+                },
+                timestamp: Date.now()
+            });
+        }
+    });
+});
+
+
 /* GET feedposts */
 router.get('/feed', firebase.verify, (req, res, next) => {
     var uid = req.decodedToken.uid;
