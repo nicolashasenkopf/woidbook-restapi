@@ -201,13 +201,13 @@ router.get('/:uid/profile', firebase.verify, (req, res, next) => {
       // Check if user account is privat
       if(user.options.privacy.private == true) {
         // Check if user is in follower list
-        if(user.follower.some(e => e.uid === req.decodedToken.uid)) {
+        if(user.follower.filter((obj) => obj.type != "REQUEST").some(e => e.uid === req.decodedToken.uid)) {
           Post.find({'user._id': user._id}).sort({'createdAt': -1}).limit(40).then((posts) => {
             res.status(200).json({
               _id: user._id,
               username: user.username,
               name: user.name,
-              follower: user.follower,
+              follower: user.follower.filter((obj) => obj.type != "REQUEST"),
               followed: user.followed,
               leveling: {
                 level: user.leveling.level,

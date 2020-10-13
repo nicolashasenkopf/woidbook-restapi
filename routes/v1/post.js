@@ -230,60 +230,30 @@ router.post('/add', firebase.verify, (req, res, next) => {
 
     if(req.body.content != null) {
         if(req.files != null) {
-            if(req.files.images[0] != null) {
-                for(let i = 0; i < req.files.images.length; i++) {
-                    if(isValid(req.files.images[i])) {
-                        var filename = post_id + '-' + (i+1) + path.extname(req.files.images.name);
-                        req.files.images[i].mv('./public/post/images/' + filename, (error) => {
-                            if(error) res.status(500).json({
-                                status: 500,
-                                error: error,
-                                timestamp: Date.now()
-                            });
-                        });
-    
-                        images.push(base_path + "/post/images/" + filename);
-                    } else {
-                        res.status(403).json({
-                            status:  403,
-                            error: {
-                                code: "WRONG_IMAGE_ENDING",
-                                message: "The ending is invalid",
-                                mimetype: req.files.images[i].mimetype.toString()
-                            },
+            var imageUploads = req.files.images[0] != null ? req.files.images : [req.files.images];
+            for(let i = 0; i < imageUploads.length; i++) {
+                if(isValid(imageUploads[i])) {
+                    var filename = post_id + '-' + (i+1) + path.extname(imageUploads[i].name);
+                    imageUploads[i].mv('./public/post/images/' + filename, (error) => {
+                        if(error) res.status(500).json({
+                            status: 500,
+                            error: error,
                             timestamp: Date.now()
                         });
-                        return;
-                    }
-                }
-            } else if(req.files.images != null) {
-                if(req.files.images != null) {
-                    if(isValid(req.files.images)) {
-                        var filename = post_id + '-1' + path.extname(req.files.images.name);
-                        req.files.images.mv('./public/post/images/' + filename, (error) => {
-                            if(error) {
-                                console.log(error);
-                                 res.status(500).json({
-                                    status: 500,
-                                    error: error,
-                                    timestamp: Date.now()
-                                });
-                                return;
-                            }
-                        });
-    
-                        images.push(base_path + "/post/images/" + filename);
-                    } else {
-                        res.status(403).json({
-                            status:  403,
-                            error: {
-                                code: "WRONG_IMAGE_ENDING",
-                                message: "The ending is invalid",
-                                mimetype: req.files.images.mimetype.toString()
-                            },
-                            timestamp: Date.now()
-                        });
-                    }
+                    });
+
+                    images.push(base_path + "/post/images/" + filename);
+                } else {
+                    res.status(403).json({
+                        status:  403,
+                        error: {
+                            code: "WRONG_IMAGE_ENDING",
+                            message: "The ending is invalid",
+                            mimetype: imageUploads[i].mimetype.toString()
+                        },
+                        timestamp: Date.now()
+                    });
+                    return;
                 }
             }
     
@@ -305,7 +275,7 @@ router.post('/add', firebase.verify, (req, res, next) => {
                         error: {
                             code: "WRONG_VIDEO_ENDING",
                             message: "The ending is invalid",
-                            mimetype: req.files.images.mimetype.toString()
+                            mimetype: req.files.video.mimetype.toString()
                         },
                         timestamp: Date.now()
                     });

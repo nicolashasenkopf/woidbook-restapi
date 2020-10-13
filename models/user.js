@@ -41,6 +41,7 @@ var userSchema = new Schema({
     },
     stories: {type: Array, default: new Array()},
     savedPosts: {type: Array, default: new Array()},
+    milestones: {type: Array, default: new Array()},
     verified: {type: Boolean, default: false},
     blocked: {type: Array, default: new Array()},
     lastConnection: {type: Date, default: Date.now()},
