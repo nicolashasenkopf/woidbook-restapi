@@ -3,6 +3,7 @@ var router = express.Router();
 var path = require('path');
 var firebase = require('../../firebase/firebase');
 
+const milestones = require('../../milestones/milestones');
 const base_path = "https://api.woidbook.com";
 
 // models
@@ -347,6 +348,34 @@ router.post('/add', firebase.verify, (req, res, next) => {
                             timestamp: Date.now()
                         });
                     } else {
+                        if(!user.milestones.includes(milestones.getMilestoneByCode('PO1PO'))) {
+                            user.milestones.push(milestones.getMilestoneByCode('PO1PO'));
+                            user.update({'milestones': user.milestones}, (err) => {
+                                if(err) console.error(err);
+                            });
+                        } else {
+                            Post.find({'user._id': user._id}, (err, posts) => {
+                                if(err) {
+                                    res.status(500).json({
+                                        status: 500,
+                                        error: err,
+                                        timestamp: Date.now()
+                                    });
+                                }
+    
+                                if(posts.length == 4) {
+                                    user.milestones.push(milestones.getMilestoneByCode('PO5PO'));
+                                } else if(posts.length == 9) {
+                                    user.milestones.push(milestones.getMilestoneByCode('PO10PO'));
+                                } else if(posts.length == 99) {
+                                    user.milestones.push(milestones.getMilestoneByCode('PO100PO'));
+                                }
+                                user.update({'milestones': user.milestones}, (err) => {
+                                    if(err) console.error(err);
+                                });
+                            });
+                        }
+
                         res.status(200).json({
                             status: 200,
                             message: "Successfully created post",
