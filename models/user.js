@@ -35,9 +35,10 @@ var userSchema = new Schema({
     },
     leveling: {
         lastPoints: {type: Number, default: 0},
-        lastPointsGotFrom: {type: String, default: ""},
+        lastPointsGotFrom: {type: Array, default: new Array},
         points: {type: Number, default: 0},
         level: {type: Number, default: 0},
+        pointsForNextLevel: {type: Number, default: 100}
     },
     stories: {type: Array, default: new Array()},
     savedPosts: {type: Array, default: new Array()},

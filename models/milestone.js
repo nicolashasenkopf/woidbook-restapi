@@ -6,7 +6,7 @@ module.exports = class Milestone {
         this.points = points;
     }
 
-    get toObject() {
+    toObject() {
         return {
             "code": this.code,
             "name": this.name,

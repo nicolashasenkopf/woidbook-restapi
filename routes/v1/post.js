@@ -4,6 +4,7 @@ var path = require('path');
 var firebase = require('../../firebase/firebase');
 
 const milestones = require('../../milestones/milestones');
+const level = require('../../level/level');
 const base_path = "https://api.woidbook.com";
 
 // models
@@ -348,11 +349,9 @@ router.post('/add', firebase.verify, (req, res, next) => {
                             timestamp: Date.now()
                         });
                     } else {
-                        if(!user.milestones.includes(milestones.getMilestoneByCode('PO1PO').toObject())) {
-                            user.milestones.push(milestones.getMilestoneByCode('PO1PO').toObject());
-                            user.update({'milestones': user.milestones}, (err) => {
-                                if(err) console.error(err);
-                            });
+                        var milestone;
+                        if(user.milestones.filter((obj) => obj.code == 'PO1PO').length == 0) {
+                            milestone = milestones.getMilestoneByCode('PO1PO').toObject();
                         } else {
                             Post.find({'user._id': user._id}, (err, posts) => {
                                 if(err) {
@@ -364,15 +363,24 @@ router.post('/add', firebase.verify, (req, res, next) => {
                                 }
     
                                 if(posts.length == 4) {
-                                    user.milestones.push(milestones.getMilestoneByCode('PO5PO').toObject());
+                                    milestone = milestones.getMilestoneByCode('PO5PO').toObject();
                                 } else if(posts.length == 9) {
-                                    user.milestones.push(milestones.getMilestoneByCode('PO10PO').toObject());
+                                    milestone = milestones.getMilestoneByCode('PO10PO').toObject();
                                 } else if(posts.length == 99) {
-                                    user.milestones.push(milestones.getMilestoneByCode('PO100PO').toObject());
+                                    milestone = milestones.getMilestoneByCode('PO100PO').toObject();
                                 }
-                                user.update({'milestones': user.milestones}, (err) => {
-                                    if(err) console.error(err);
-                                });
+                            });
+                        }
+
+                        if(milestone != null ) {
+                            user.leveling.lastPoints = milestone.points;
+                            user.leveling.lastPointsGotFrom.push(milestone.code);
+                            user.leveling.points = user.leveling.points + milestone.points;
+                            user.leveling.level = level.getLevelByPoints(user.leveling.points);
+                            user.leveling.pointsForNextLevel = level.getPointsForNextLevel(user.leveling.points);
+                            user.milestones.push(milestone);
+                            user.update({'milestones': user.milestones, 'leveling': user.leveling}, (err) => {
+                                if(err) console.error(err);
                             });
                         }
 

@@ -247,7 +247,7 @@ router.get('/:uid/profile', firebase.verify, (req, res, next) => {
               _id: user._id,
               username: user.username,
               name: user.name,
-              follower: user.follower,
+              follower: user.follower.filter((obj) => obj.type != "REQUEST"),
               followed: user.followed,
               leveling: {
                 level: user.leveling.level,
