@@ -348,8 +348,8 @@ router.post('/add', firebase.verify, (req, res, next) => {
                             timestamp: Date.now()
                         });
                     } else {
-                        if(!user.milestones.includes(milestones.getMilestoneByCode('PO1PO'))) {
-                            user.milestones.push(milestones.getMilestoneByCode('PO1PO'));
+                        if(!user.milestones.includes(milestones.getMilestoneByCode('PO1PO').toObject())) {
+                            user.milestones.push(milestones.getMilestoneByCode('PO1PO').toObject());
                             user.update({'milestones': user.milestones}, (err) => {
                                 if(err) console.error(err);
                             });
@@ -364,11 +364,11 @@ router.post('/add', firebase.verify, (req, res, next) => {
                                 }
     
                                 if(posts.length == 4) {
-                                    user.milestones.push(milestones.getMilestoneByCode('PO5PO'));
+                                    user.milestones.push(milestones.getMilestoneByCode('PO5PO').toObject());
                                 } else if(posts.length == 9) {
-                                    user.milestones.push(milestones.getMilestoneByCode('PO10PO'));
+                                    user.milestones.push(milestones.getMilestoneByCode('PO10PO').toObject());
                                 } else if(posts.length == 99) {
-                                    user.milestones.push(milestones.getMilestoneByCode('PO100PO'));
+                                    user.milestones.push(milestones.getMilestoneByCode('PO100PO').toObject());
                                 }
                                 user.update({'milestones': user.milestones}, (err) => {
                                     if(err) console.error(err);
