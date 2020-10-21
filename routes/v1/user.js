@@ -1,9 +1,13 @@
 var express = require('express');
 var router = express.Router();
 var firebase = require('../../firebase/firebase');
+const Path = require('path');
 
 // Cache
 var usernameCache = [];
+
+// path
+var base_path = "https://api.woidbook.com";
 
 // models
 var Post = require('../../models/post');
@@ -68,18 +72,14 @@ router.post('/profile/image', firebase.verify, (req, res, next) => {
     return false;
   }
 
+  console.log(req.files);
+
   if(req.files != null) {
     if(req.files.images != null) {
       if(isValid(req.files.images)) {
-          var filename = req.decodedToken.uid + path.extname(req.files.images.name);
+          var filename = req.decodedToken.uid + Path.extname(req.files.images.name);
           req.files.images.mv('./public/user/images/' + filename, (error) => {
               if(error) {
-                  console.log(error);
-                   res.status(500).json({
-                      status: 500,
-                      error: error,
-                      timestamp: Date.now()
-                  });
                   return;
               }
           });
