@@ -372,6 +372,12 @@ router.post('/add', firebase.verify, (req, res, next) => {
                             });
                         }
 
+                        user.leveling.lastPoints = 50;
+                        user.leveling.lastPointsGotFrom.push("PO");
+                        user.leveling.points = user.leveling.points + 50;
+                        user.leveling.level = level.getLevelByPoints(user.leveling.points);
+                        user.leveling.pointsForNextLevel = level.getPointsForNextLevel(user.leveling.points);
+
                         if(milestone != null ) {
                             user.leveling.lastPoints = milestone.points;
                             user.leveling.lastPointsGotFrom.push(milestone.code);
@@ -382,6 +388,8 @@ router.post('/add', firebase.verify, (req, res, next) => {
                             user.update({'milestones': user.milestones, 'leveling': user.leveling}, (err) => {
                                 if(err) console.error(err);
                             });
+                        } else {
+                            user.update({'leveling': user.leveling}, (err) => {if(err) console.error(err)});
                         }
 
                         res.status(200).json({
