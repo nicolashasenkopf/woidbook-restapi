@@ -30,7 +30,7 @@ router.post('/create', firebase.verify, (req, res, next) => {
         user.name = req.body.name;
         user.email = req.body.email;
         user.startLetters = req.body.startLetters;
-        user.options.privacy.private = req.body.private === true ? true : false;
+        user.options.privacy.private = false;
         user.createdAt = Date.now();
         user.lastConnection = Date.now();
 
