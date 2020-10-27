@@ -186,6 +186,31 @@ router.get('/data', firebase.verify, function(req, res, next) {
   });
 });
 
+/* GET Notifications */
+router.get('/notifications', firebase.verify, (req, res, next) => {
+  User.findById(req.decodedToken.uid, (error, user) => {
+    if(error) res.status(500).json({error: {code: "SERVER", message: "Database error"}});
+
+    res.status(200).json({
+      status: 200,
+      notifications: user.notifications,
+      timestamp: Date.now()
+    });
+
+    let updated = false;
+    if(user.notifications.length > 0) {
+      for(let i = 0; i < user.notifications.length; i++) {
+        if(user.notifications[i].seen == false) {
+          user.notifications[i].seen = true;
+          updated = true;
+        }
+      }
+    }
+
+    if(updated) user.update({'notifications': user.notifications}, (error) => {if(error) res.status(500).json({error: {code: "SERVER", message: "Database error"}})});
+  });
+});
+
 /* GET profiledata */
 router.get('/:uid/profile', firebase.verify, (req, res, next) => {
   var uid = req.params.uid;
@@ -427,6 +452,10 @@ router.post('/follow', firebase.verify, (req, res, next) => {
 
               user.notifications.push({
                 _id: create_UUID(),
+                user: {
+                  _id: sender._id,
+                  username: sender.username
+                },
                 message: "@" + sender.username + " folgt dir nun!",
                 seen: false,
                 action: false,
