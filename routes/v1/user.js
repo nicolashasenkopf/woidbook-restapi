@@ -223,88 +223,46 @@ router.get('/:uid/profile', firebase.verify, (req, res, next) => {
     });
 
     if(user) {
-      // Check if user account is privat
-      if(user.options.privacy.private == true) {
-        // Check if user is in follower list
-        if(user.follower.filter((obj) => obj.type != "REQUEST").some(e => e.uid === req.decodedToken.uid)) {
-          Post.find({'user._id': user._id}).sort({'createdAt': -1}).limit(40).then((posts) => {
-            res.status(200).json({
-              _id: user._id,
-              username: user.username,
-              name: user.name,
-              follower: user.follower.filter((obj) => obj.type != "REQUEST"),
-              followed: user.followed,
-              leveling: {
-                level: user.leveling.level,
-                points: user.leveling.points
-              },
-              posts: posts,
-              stories: user.stories,
-              verified: user.verified,
-              options: {
-                privacy: user.options.privacy,
-                information: {
-                  birthday: user.options.privacy.birthday == true ? user.options.information.birthday : null,
-                  town: user.options.privacy.town == true ? user.options.information.town : null,
-                  description: user.options.information.description,
-                  region: user.options.information.region
-                }
-              }
-            });
-          });
-        } else {
-          res.status(403).json({
-            status: 403,
-            error: {
-              code: "ACCOUNT_PRIVAT",
-              message: "You are not a follower"
-            },
-            name: user.name,
+      // check if user is in blocked list
+      if(!user.blocked.includes(req.decodedToken.uid)) {
+        Post.find({'user._id': user._id}).sort({'createdAt': -1}).limit(40).then((posts) => {
+          res.status(200).json({
+            _id: user._id,
             username: user.username,
-            timestamp: Date.now()
+            name: user.name,
+            follower: user.follower.filter((obj) => obj.type != "REQUEST"),
+            followed: user.followed,
+            leveling: {
+              level: user.leveling.level,
+              points: user.leveling.points
+            },
+            posts: posts,
+            stories: user.stories,
+            verified: user.verified,
+            bavarianVerified: user.bavarianVerified,
+            options: {
+              privacy: user.options.privacy,
+              information: {
+                birthday: user.options.privacy.birthday == true ? user.options.information.birthday : null,
+                town: user.options.privacy.town == true ? user.options.information.town : null,
+                description: user.options.information.description,
+                region: user.options.information.region
+              }
+            }
           });
-        }
+        });
       } else {
-        // check if user is in blocked list
-        if(!user.blocked.includes(req.decodedToken.uid)) {
-          Post.find({'user._id': user._id}).sort({'createdAt': -1}).limit(40).then((posts) => {
-            res.status(200).json({
-              _id: user._id,
-              username: user.username,
-              name: user.name,
-              follower: user.follower.filter((obj) => obj.type != "REQUEST"),
-              followed: user.followed,
-              leveling: {
-                level: user.leveling.level,
-                points: user.leveling.points
-              },
-              posts: posts,
-              stories: user.stories,
-              verified: user.verified,
-              options: {
-                privacy: user.options.privacy,
-                information: {
-                  birthday: user.options.privacy.birthday == true ? user.options.information.birthday : null,
-                  town: user.options.privacy.town == true ? user.options.information.town : null,
-                  description: user.options.information.description,
-                  region: user.options.information.region
-                }
-              }
-            });
-          });
-        } else {
-          // return if blocked
-          res.status(403).json({
-            status: 403,
-            error: {
-              code: "BLOCKED_BY_USER",
-              message: "You are blocked by the user with the following uid: " + uid
-            },
-            name: user.name,
-            username: user.username,
-            timestamp: Date.now()
-          });
-        }
+        // return if blocked
+        res.status(403).json({
+          status: 403,
+          error: {
+            code: "BLOCKED_BY_USER",
+            message: "You are blocked by the user with the following uid: " + uid
+          },
+          name: user.name,
+          username: user.username,
+          timestamp: Date.now()
+        });
       }
     } else {
       // return if not found
