@@ -99,7 +99,7 @@ router.post('/profile/image', firebase.verify, (req, res, next) => {
               timestamp: Date.now()
           });
       }
-  }
+    }
   }
 });
 
