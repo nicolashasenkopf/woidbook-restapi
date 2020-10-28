@@ -72,8 +72,6 @@ router.post('/profile/image', firebase.verify, (req, res, next) => {
     return false;
   }
 
-  console.log(req.files);
-
   if(req.files != null) {
     if(req.files.images != null) {
       if(isValid(req.files.images)) {
@@ -132,7 +130,6 @@ router.get('/:username/available', (req, res, next) => {
       if(error) res.status(500);
 
       if(user) {
-        console.log("test");
         res.status(200).json({
           status: 200,
           state: false,
@@ -364,7 +361,6 @@ router.post('/follow', firebase.verify, (req, res, next) => {
     if(user) {
       // check if user is in follower list
       if(user.follower.some(e => e.uid == req.decodedToken.uid)) {
-        console.log(user.follower, req.decodedToken.uid);
         user.follower = user.follower.filter((object) => {return object.uid != req.decodedToken.uid});
 
         user.update({'follower': user.follower}, (error) => {if(error) console.error(error)});
