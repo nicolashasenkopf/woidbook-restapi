@@ -10,7 +10,7 @@ router.get('/get', function(req, res, next) {
 
     if(changelogs) {
         res.status(200).json({
-            changelogs: changelogs
+            changelogs: changelogs.reverse()
         });
     } else {
         res.status(404).json({
