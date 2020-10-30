@@ -44,7 +44,6 @@ var userSchema = new Schema({
     savedPosts: {type: Array, default: new Array()},
     milestones: {type: Array, default: new Array()},
     verified: {type: Boolean, default: false},
-    bavarianVerified: {type: Boolean, default: false},
     blocked: {type: Array, default: new Array()},
     lastConnection: {type: Date, default: Date.now()},
     createdAt: {type: Date, default: Date.now()}

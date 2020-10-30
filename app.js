@@ -20,6 +20,7 @@ var postRouter = require('./routes/v1/post');
 var storyRouter = require('./routes/v1/story');
 var searchRouter = require('./routes/v1/search');
 var changelogRouter = require('./routes/v1/changelog');
+var levelRouter = require('./routes/v1/level');
 
 var express = require('express');
 var app = express();
@@ -40,6 +41,7 @@ app.use('/v1/post', postRouter);
 app.use('/v1/story', storyRouter);
 app.use('/v1/search', searchRouter);
 app.use('/v1/changelog', changelogRouter);
+app.use('/v1/level', levelRouter);
 
 // catch 404 and forward to error handler
 app.use(function(req, res, next) {

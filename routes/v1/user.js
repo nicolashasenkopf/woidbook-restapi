@@ -236,7 +236,6 @@ router.get('/:uid/profile', firebase.verify, (req, res, next) => {
             posts: posts,
             stories: user.stories,
             verified: user.verified,
-            bavarianVerified: user.bavarianVerified,
             options: {
               privacy: user.options.privacy,
               information: {

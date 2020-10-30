@@ -18,7 +18,7 @@ router.get('/get', function(req, res, next) {
                 message: "No changelogs found"
             }
         });
-    }
+    } 
   });
 });
 
