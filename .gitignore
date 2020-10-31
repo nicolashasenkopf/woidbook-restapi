@@ -1,4 +1,5 @@
 /node_modules
 /public
+/config
 
 .DS_STORE
