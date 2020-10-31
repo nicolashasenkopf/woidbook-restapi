@@ -1,6 +1,6 @@
 // firebase admin
 var admin = require('firebase-admin');
-var serviceAccount = require('../firebase_admin/woidbook-b76ba-firebase-adminsdk-a2do8-83f6884202.json');
+var serviceAccount = null // SERVICEACCOUNT
 
 // authentication
 function verify(req, res, next) {
